@@ -2,6 +2,7 @@ import asyncio
 import functools
 import logging
 import ssl
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from operator import attrgetter
@@ -10,11 +11,14 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 import aioredis
-from aioredis import MultiExecError, Redis
+from aioredis import ConnectionPool, Redis
+from aioredis.exceptions import ResponseError, WatchError
+from aioredis.sentinel import Sentinel
 from pydantic.validators import make_arbitrary_type_validator
 
 from .constants import default_queue_name, job_key_prefix, result_key_prefix
 from .jobs import Deserializer, Job, JobDef, JobResult, Serializer, deserialize_job, serialize_job
+from .parser import ContextAwareDefaultParser, ContextAwareEncoder, encoder_options_var  # type: ignore
 from .utils import timestamp_ms, to_ms, to_unix_ms
 
 logger = logging.getLogger('arq.connections')
@@ -70,7 +74,7 @@ class RedisSettings:
 expires_extra_ms = 86_400_000
 
 
-class ArqRedis(Redis):  # type: ignore
+class ArqRedis(Redis):
     """
     Thin subclass of ``aioredis.Redis`` which adds :func:`arq.connections.enqueue_job`.
 
@@ -83,7 +87,7 @@ class ArqRedis(Redis):  # type: ignore
 
     def __init__(
         self,
-        pool_or_conn: Any,
+        pool_or_conn: Optional[ConnectionPool] = None,
         job_serializer: Optional[Serializer] = None,
         job_deserializer: Optional[Deserializer] = None,
         default_queue_name: str = default_queue_name,
@@ -92,7 +96,17 @@ class ArqRedis(Redis):  # type: ignore
         self.job_serializer = job_serializer
         self.job_deserializer = job_deserializer
         self.default_queue_name = default_queue_name
-        super().__init__(pool_or_conn, **kwargs)
+        if pool_or_conn:
+            kwargs['connection_pool'] = pool_or_conn
+        super().__init__(**kwargs)
+        self.connection_pool.connection_kwargs['parser_class'] = ContextAwareDefaultParser
+        self.connection_pool.connection_kwargs['encoder_class'] = ContextAwareEncoder
+
+    @contextmanager
+    def encoder_context(self, **options: Any) -> Generator['ArqRedis', None, None]:
+        token = encoder_options_var.set(options)
+        yield self
+        encoder_options_var.reset(token)
 
     async def enqueue_job(
         self,
@@ -129,14 +143,14 @@ class ArqRedis(Redis):  # type: ignore
         defer_by_ms = to_ms(_defer_by)
         expires_ms = to_ms(_expires)
 
-        with await self as conn:
+        async with self as conn:
             pipe = conn.pipeline()
-            pipe.unwatch()
-            pipe.watch(job_key)
-            job_exists = pipe.exists(job_key)
-            job_result_exists = pipe.exists(result_key_prefix + job_id)
-            await pipe.execute()
-            if await job_exists or await job_result_exists:
+            await pipe.unwatch()
+            await pipe.watch(job_key)
+            job_exists = await pipe.exists(job_key)
+            job_result_exists = await pipe.exists(result_key_prefix + job_id)
+            if job_exists or job_result_exists:
+                await pipe.reset()
                 return None
 
             enqueue_time_ms = timestamp_ms()
@@ -150,19 +164,17 @@ class ArqRedis(Redis):  # type: ignore
             expires_ms = expires_ms or score - enqueue_time_ms + expires_extra_ms
 
             job = serialize_job(function, args, kwargs, _job_try, enqueue_time_ms, serializer=self.job_serializer)
-            tr = conn.multi_exec()
-            tr.psetex(job_key, expires_ms, job)
-            tr.zadd(_queue_name, score, job_id)
+            pipe.multi()
+            pipe.psetex(job_key, expires_ms, job)
+            pipe.zadd(_queue_name, {job_id: score})
             try:
-                await tr.execute()
-            except MultiExecError:
+                await pipe.execute()
+            except (ResponseError, WatchError):
                 # job got enqueued since we checked 'job_exists'
-                # https://github.com/samuelcolvin/arq/issues/131, avoid warnings in log
-                await asyncio.gather(*tr._results, return_exceptions=True)
                 return None
         return Job(job_id, redis=self, _queue_name=_queue_name, _deserializer=self.job_deserializer)
 
-    async def _get_job_result(self, key: str) -> JobResult:
+    async def _get_job_result(self, key: Union[str]) -> JobResult:
         job_id = key[len(result_key_prefix) :]
         job = Job(job_id, self, _deserializer=self.job_deserializer)
         r = await job.result_info()
@@ -175,12 +187,13 @@ class ArqRedis(Redis):  # type: ignore
         """
         Get results for all jobs in redis.
         """
-        keys = await self.keys(result_key_prefix + '*')
+        with self.encoder_context(decode_responses=True):
+            keys = await self.keys(result_key_prefix + '*')
         results = await asyncio.gather(*[self._get_job_result(k) for k in keys])
         return sorted(results, key=attrgetter('enqueue_time'))
 
     async def _get_job_def(self, job_id: str, score: int) -> JobDef:
-        v = await self.get(job_key_prefix + job_id, encoding=None)
+        v = await self.get(job_key_prefix + job_id)
         jd = deserialize_job(v, deserializer=self.job_deserializer)
         jd.score = score
         return jd
@@ -189,8 +202,9 @@ class ArqRedis(Redis):  # type: ignore
         """
         Get information about queued, mostly useful when testing.
         """
-        jobs = await self.zrange(queue_name, withscores=True)
-        return await asyncio.gather(*[self._get_job_def(job_id, score) for job_id, score in jobs])
+        with self.encoder_context(decode_responses=True):
+            jobs = await self.zrange(queue_name, withscores=True, start=0, end=-1)
+        return await asyncio.gather(*[self._get_job_def(job_id, int(score)) for job_id, score in jobs])
 
 
 async def create_pool(
@@ -214,32 +228,33 @@ async def create_pool(
     ), "str provided for 'host' but 'sentinel' is true; list of sentinels expected"
 
     if settings.sentinel:
-        addr: Any = settings.host
 
-        async def pool_factory(*args: Any, **kwargs: Any) -> Redis:
-            client = await aioredis.sentinel.create_sentinel_pool(*args, ssl=settings.ssl, **kwargs)
-            return client.master_for(settings.sentinel_master)
+        def pool_factory(*args: Any, **kwargs: Any) -> ArqRedis:
+            client = Sentinel(*args, sentinels=settings.host, ssl=settings.ssl, **kwargs)  # type: ignore
+            return client.master_for(settings.sentinel_master, redis_class=ArqRedis)
 
     else:
         pool_factory = functools.partial(
-            aioredis.create_pool, create_connection_timeout=settings.conn_timeout, ssl=settings.ssl
+            ArqRedis,
+            host=settings.host,
+            port=settings.port,
+            socket_connect_timeout=settings.conn_timeout,
+            ssl=settings.ssl,
         )
-        addr = settings.host, settings.port
 
     try:
-        pool = await pool_factory(addr, db=settings.database, password=settings.password, encoding='utf8')
-        pool = ArqRedis(
-            pool,
-            job_serializer=job_serializer,
-            job_deserializer=job_deserializer,
-            default_queue_name=default_queue_name,
-        )
+        pool = pool_factory(db=settings.database, password=settings.password, encoding='utf8')
+        pool.job_serializer = job_serializer
+        pool.job_deserializer = job_deserializer
+        pool.default_queue_name = default_queue_name
+        await pool.ping()
 
     except (ConnectionError, OSError, aioredis.RedisError, asyncio.TimeoutError) as e:
         if retry < settings.conn_retries:
             logger.warning(
-                'redis connection error %s %s %s, %d retries remaining...',
-                addr,
+                'redis connection error %s:%s %s %s, %d retries remaining...',
+                settings.host,
+                settings.port,
                 e.__class__.__name__,
                 e,
                 settings.conn_retries - retry,
@@ -264,14 +279,14 @@ async def create_pool(
 
 
 async def log_redis_info(redis: Redis, log_func: Callable[[str], Any]) -> None:
-    with await redis as r:
+    async with redis as r:
         info_server, info_memory, info_clients, key_count = await asyncio.gather(
             r.info(section='Server'), r.info(section='Memory'), r.info(section='Clients'), r.dbsize(),
         )
 
-    redis_version = info_server.get('server', {}).get('redis_version', '?')
-    mem_usage = info_memory.get('memory', {}).get('used_memory_human', '?')
-    clients_connected = info_clients.get('clients', {}).get('connected_clients', '?')
+    redis_version = info_server.get('redis_version', '?')
+    mem_usage = info_memory.get('used_memory_human', '?')
+    clients_connected = info_clients.get('connected_clients', '?')
 
     log_func(
         f'redis_version={redis_version} '
