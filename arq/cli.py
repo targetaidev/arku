@@ -1,4 +1,5 @@
 import asyncio
+import importlib.metadata
 import logging.config
 import os
 import sys
@@ -9,7 +10,6 @@ import click
 from pydantic.utils import import_string
 
 from .logs import default_log_config
-from .version import VERSION
 from .worker import check_health, create_worker, run_worker
 
 if TYPE_CHECKING:
@@ -21,8 +21,15 @@ watch_help = 'Watch a directory and reload the worker upon changes.'
 verbose_help = 'Enable verbose output.'
 
 
+def _get_version() -> str:
+    try:
+        return importlib.metadata.version('arq')
+    except importlib.metadata.PackageNotFoundError:
+        return 'unknown'
+
+
 @click.command('arq')
-@click.version_option(VERSION, '-V', '--version', prog_name='arq')
+@click.version_option(_get_version(), '-V', '--version', prog_name='arq')
 @click.argument('worker-settings', type=str, required=True)
 @click.option('--burst/--no-burst', default=None, help=burst_help)
 @click.option('--check', is_flag=True, help=health_check_help)

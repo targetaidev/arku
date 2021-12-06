@@ -1,20 +1,18 @@
-from pathlib import Path
+import pathlib
+import setuptools
 
-from importlib.machinery import SourceFileLoader
-from setuptools import setup
 
 description = 'Job queues in python with asyncio and redis'
-readme = Path(__file__).parent / 'README.md'
+readme = pathlib.Path(__file__).parent / 'README.md'
 if readme.exists():
     long_description = readme.read_text()
 else:
     long_description = description + '.\n\nSee https://arq-docs.helpmanual.io/ for documentation.'
-# avoid loading the package before requirements are installed:
-version = SourceFileLoader('version', 'arq/version.py').load_module()
 
-setup(
+
+setuptools.setup(
     name='arq',
-    version=version.VERSION,
+    use_scm_version=True,
     description=description,
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -63,5 +61,8 @@ setup(
     ],
     extras_require={
         'watch': ['watchgod>=0.4'],
-    }
+    },
+    setup_requires=[
+        'setuptools_scm==3.3.3',
+    ],
 )
