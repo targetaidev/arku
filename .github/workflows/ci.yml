@@ -1,47 +1,19 @@
 name: CI
 
-on:
-  push:
-    branches:
-      - master
-    tags:
-      - '**'
-  pull_request: {}
+on: ['push']
 
 jobs:
   lint:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
-
     - name: set up python
       uses: actions/setup-python@v1
       with:
         python-version: 3.9
-
-    - run: pip install -r tests/requirements-linting.txt
-    - run: pip install .
 
     - run: make lint
-
     - run: make mypy
-
-  docs:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: set up python
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.9
-
-    - run: pip install -r docs/requirements.txt
-    - run: pip install .
-
-    - run: make docs
 
   test:
     name: test py${{ matrix.python-version }} on ${{ matrix.os }}
@@ -49,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu]
-        python-version: ['3.6', '3.7', '3.8', '3.9']
+        python-version: ['3.8', '3.9']
 
     env:
       PYTHON: ${{ matrix.python-version }}
@@ -66,18 +38,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
     - name: set up python
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
 
-    - run: pip install -r tests/requirements-testing.txt
-    - run: pip install .[watch]
-
-    - run: make test
-
-    - run: coverage xml
+    - run: make testcov
 
     - uses: codecov/codecov-action@v1.5.2
       with:
@@ -86,7 +52,7 @@ jobs:
 
   deploy:
     name: Deploy
-    needs: [lint, docs, test]
+    needs: [lint, test]
     if: "success() && startsWith(github.ref, 'refs/tags/')"
     runs-on: ubuntu-latest
 
@@ -96,15 +62,11 @@ jobs:
       - name: set up python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       - name: install
         run: |
           make install
-          pip install -U wheel twine
-
-      - name: set version
-        run: VERSION_PATH='arq/version.py' python <(curl -Ls https://git.io/JT3rm)
 
       - name: build
         run: python setup.py sdist bdist_wheel
@@ -116,8 +78,3 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.pypi_token }}
-
-      - name: publish docs
-        run: make publish-docs
-        env:
-          NETLIFY: ${{ secrets.netlify_token }}

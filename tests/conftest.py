@@ -10,7 +10,11 @@ from arq.worker import Worker
 
 @pytest.yield_fixture
 async def arq_redis(loop):
-    redis_ = ArqRedis(host='localhost', port=6379, encoding='utf-8',)
+    redis_ = ArqRedis(
+        host='localhost',
+        port=6379,
+        encoding='utf-8',
+    )
     await redis_.flushall()
     yield redis_
     await redis_.close()
