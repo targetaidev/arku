@@ -731,12 +731,20 @@ class Worker:
     async def close(self) -> None:
         if not self._handle_signals:
             self.handle_sig(signal.SIGUSR1)
+
         if not self._pool:
             return
+
         await asyncio.gather(*self.tasks.values())
         await self.pool.delete(self.health_check_key)
+
         if self.on_shutdown:
             await self.on_shutdown(self.ctx)
+
+        if self._handle_signals:
+            await self.close_pool()
+
+    async def close_pool(self):
         await self.pool.close()  # type: ignore
         self._pool = None
 

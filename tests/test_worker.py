@@ -111,6 +111,64 @@ async def test_handle_no_sig(caplog):
     assert worker.tasks[1].cancel.call_count == 1
 
 
+async def test_close_with_sig(mocker, caplog):
+    async def _coroutine(*args, **kwargs):
+        pass
+
+    caplog.set_level(logging.INFO)
+    worker = Worker([foobar], handle_signals=True)
+
+    mocker.patch.object(worker, '_pool', mocker.Mock())
+    mocker.patch.object(worker, 'handle_sig')
+    mocker.patch('asyncio.gather').return_value = _coroutine()
+    mocker.patch.object(worker, 'close_pool').return_value = _coroutine()
+    worker._pool.delete.return_value = _coroutine()
+
+    await worker.close()
+
+    worker.handle_sig.assert_not_called()
+    asyncio.gather.assert_called_once_with(*worker.tasks.values())
+    worker.pool.delete.assert_called_once_with(worker.health_check_key)
+    worker.close_pool.assert_called_once()
+
+
+async def test_close_with_no_sig(mocker, caplog):
+    async def _coroutine(*args, **kwargs):
+        pass
+
+    caplog.set_level(logging.INFO)
+    worker = Worker([foobar], handle_signals=False)
+
+    mocker.patch.object(worker, '_pool', mocker.Mock())
+    mocker.patch.object(worker, 'handle_sig')
+    mocker.patch('asyncio.gather').return_value = _coroutine()
+    mocker.patch.object(worker, 'close_pool').return_value = _coroutine()
+    worker._pool.delete.return_value = _coroutine()
+
+    await worker.close()
+
+    worker.handle_sig.assert_called_once_with(signal.SIGUSR1)
+    asyncio.gather.assert_called_once_with(*worker.tasks.values())
+    worker.pool.delete.assert_called_once_with(worker.health_check_key)
+    worker.close_pool.assert_not_called()
+
+
+async def test_close_pool(mocker, caplog):
+    async def _coroutine(*args, **kwargs):
+        pass
+
+    caplog.set_level(logging.INFO)
+    worker = Worker([foobar])
+
+    mock = mocker.patch.object(worker, '_pool')
+    mock.close.return_value = _coroutine()
+
+    await worker.close_pool()
+
+    mock.close.assert_called_once()
+    assert worker._pool is None
+
+
 async def test_job_successful(arq_redis: ArqRedis, worker, caplog):
     caplog.set_level(logging.INFO)
     await arq_redis.enqueue_job('foobar', _job_id='testing')
