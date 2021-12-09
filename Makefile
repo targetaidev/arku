@@ -2,7 +2,8 @@
 .PHONY: help bootstrap build fmt lint test testcov mypy outdated upload clean
 
 VENV = .venv
-PYTHON = $(VENV)/bin/python
+PYTHON_BIN ?= python3
+PYTHON = $(VENV)/bin/$(PYTHON_BIN)
 
 help:
 	@echo "Please use \`$(MAKE) <target>' where <target> is one of the following:"
@@ -20,7 +21,7 @@ help:
 
 bootstrap: $(VENV)/bin/activate
 $(VENV)/bin/activate:
-	python3.9 -m venv $(VENV)
+	$(PYTHON_BIN) -m venv $(VENV)
 	$(PYTHON) -m pip install -U pip==21.3.1 setuptools==59.4.0 wheel==0.37.0
 	$(PYTHON) -m pip install -e .[dev,doc,test]
 
