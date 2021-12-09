@@ -4,13 +4,13 @@ import functools
 import msgpack
 import pytest
 
-from arq.connections import ArqRedis, create_pool
-from arq.worker import Worker
+from arku.connections import ArkuRedis, create_pool
+from arku.worker import Worker
 
 
 @pytest.yield_fixture
-async def arq_redis(loop):
-    redis_ = ArqRedis(
+async def arku_redis(loop):
+    redis_ = ArkuRedis(
         host='localhost',
         port=6379,
         encoding='utf-8',
@@ -21,8 +21,8 @@ async def arq_redis(loop):
 
 
 @pytest.yield_fixture
-async def arq_redis_msgpack(loop):
-    redis_ = ArqRedis(
+async def arku_redis_msgpack(loop):
+    redis_ = ArkuRedis(
         host='localhost',
         port=6379,
         encoding='utf-8',
@@ -35,13 +35,13 @@ async def arq_redis_msgpack(loop):
 
 
 @pytest.yield_fixture
-async def worker(arq_redis):
+async def worker(arku_redis):
     worker_: Worker = None
 
-    def create(functions=[], burst=True, poll_delay=0, max_jobs=10, arq_redis=arq_redis, **kwargs):
+    def create(functions=[], burst=True, poll_delay=0, max_jobs=10, arku_redis=arku_redis, **kwargs):
         nonlocal worker_
         worker_ = Worker(
-            functions=functions, redis_pool=arq_redis, burst=burst, poll_delay=poll_delay, max_jobs=max_jobs, **kwargs
+            functions=functions, redis_pool=arku_redis, burst=burst, poll_delay=poll_delay, max_jobs=max_jobs, **kwargs
         )
         return worker_
 

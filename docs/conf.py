@@ -18,10 +18,10 @@ templates_path = ['_templates']
 source_suffix = '.rst'
 master_doc = 'index'
 
-project = 'arq'
-copyright = '2021, TargetAI LLC'
+project = 'arku'
+copyright = '2021, TargetAI Ltd.'
 author = 'TargetAI LLC'
-version = release = importlib.metadata.version('arq')
+version = release = importlib.metadata.version('arku')
 
 pygments_style = 'sphinx'
 
@@ -30,7 +30,7 @@ todo_include_todos = True
 html_theme = 'alabaster'
 html_theme_options = {
     'github_user': 'targetaidev',
-    'github_repo': 'arq',
+    'github_repo': 'arku',
     'travis_button': True,
     'codecov_button': True,
     'page_width': '1200px',
@@ -45,4 +45,4 @@ html_sidebars = {
         'searchbox.html',
     ]
 }
-htmlhelp_basename = 'arqdoc'
+htmlhelp_basename = 'arkudoc'

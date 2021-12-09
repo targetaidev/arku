@@ -1,13 +1,15 @@
 import asyncio
 
-from arq import create_pool
-from arq.connections import RedisSettings
+from arku import create_pool
+from arku.connections import RedisSettings
 # requires `pip install devtools`, used for pretty printing of job info
 from devtools import debug
+
 
 async def the_task(ctx):
     print('running the task')
     return 42
+
 
 async def main():
     redis = await create_pool(RedisSettings())
@@ -49,8 +51,10 @@ async def main():
     >  42
     """
 
+
 class WorkerSettings:
     functions = [the_task]
+
 
 if __name__ == '__main__':
     asyncio.run(main())

@@ -23,13 +23,13 @@ verbose_help = 'Enable verbose output.'
 
 def _get_version() -> str:
     try:
-        return importlib.metadata.version('arq')
+        return importlib.metadata.version('arku')
     except importlib.metadata.PackageNotFoundError:
         return 'unknown'
 
 
-@click.command('arq')
-@click.version_option(_get_version(), '-V', '--version', prog_name='arq')
+@click.command('arku')
+@click.version_option(_get_version(), '-V', '--version', prog_name='arku')
 @click.argument('worker-settings', type=str, required=True)
 @click.option('--burst/--no-burst', default=None, help=burst_help)
 @click.option('--check', is_flag=True, help=health_check_help)
@@ -39,7 +39,7 @@ def cli(*, worker_settings: str, burst: bool, check: bool, watch: str, verbose: 
     """
     Job queues in python with asyncio and redis.
 
-    CLI to run the arq worker.
+    CLI to run the arku worker.
     """
     sys.path.append(os.getcwd())
     worker_settings_ = cast('WorkerSettingsType', import_string(worker_settings))
@@ -73,7 +73,7 @@ async def watch_reload(path: str, worker_settings: 'WorkerSettingsType') -> None
         worker.on_stop = worker_on_stop
         loop.create_task(worker.async_run())
         async for _ in awatch(path, stop_event=stop_event):
-            print('\nfiles changed, reloading arq worker...')
+            print('\nfiles changed, reloading arku worker...')
             worker.handle_sig(Signals.SIGUSR1)
             await worker.close()
             loop.create_task(worker.async_run())

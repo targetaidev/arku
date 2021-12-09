@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from time import time
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional, Sequence, overload
 
-logger = logging.getLogger('arq.utils')
+logger = logging.getLogger('arku.utils')
 
 if TYPE_CHECKING:
     from .typing import SecondsTimedelta

@@ -21,7 +21,7 @@ from .jobs import Deserializer, Job, JobDef, JobResult, Serializer, deserialize_
 from .parser import ContextAwareDefaultParser, ContextAwareEncoder, encoder_options_var  # type: ignore
 from .utils import timestamp_ms, to_ms, to_unix_ms
 
-logger = logging.getLogger('arq.connections')
+logger = logging.getLogger('arku.connections')
 
 
 class SSLContext(ssl.SSLContext):
@@ -39,7 +39,7 @@ class RedisSettings:
     """
     No-Op class used to hold redis connection redis_settings.
 
-    Used by :func:`arq.connections.create_pool` and :class:`arq.worker.Worker`.
+    Used by :func:`arku.connections.create_pool` and :class:`arku.worker.Worker`.
     """
 
     host: Union[str, List[Tuple[str, int]]] = 'localhost'
@@ -74,14 +74,14 @@ class RedisSettings:
 expires_extra_ms = 86_400_000
 
 
-class ArqRedis(Redis):
+class ArkuRedis(Redis):
     """
-    Thin subclass of ``aioredis.Redis`` which adds :func:`arq.connections.enqueue_job`.
+    Thin subclass of ``aioredis.Redis`` which adds :func:`arku.connections.enqueue_job`.
 
-    :param redis_settings: an instance of ``arq.connections.RedisSettings``.
+    :param redis_settings: an instance of ``arku.connections.RedisSettings``.
     :param job_serializer: a function that serializes Python objects to bytes, defaults to pickle.dumps
     :param job_deserializer: a function that deserializes bytes into Python objects, defaults to pickle.loads
-    :param default_queue_name: the default queue name to use, defaults to ``arq.queue``.
+    :param default_queue_name: the default queue name to use, defaults to ``arku.queue``.
     :param kwargs: keyword arguments directly passed to ``aioredis.Redis``.
     """
 
@@ -103,7 +103,7 @@ class ArqRedis(Redis):
         self.connection_pool.connection_kwargs['encoder_class'] = ContextAwareEncoder
 
     @contextmanager
-    def encoder_context(self, **options: Any) -> Generator['ArqRedis', None, None]:
+    def encoder_context(self, **options: Any) -> Generator['ArkuRedis', None, None]:
         token = encoder_options_var.set(options)
         yield self
         encoder_options_var.reset(token)
@@ -132,7 +132,7 @@ class ArqRedis(Redis):
         :param _expires: if the job still hasn't started after this duration, do not run it
         :param _job_try: useful when re-enqueueing jobs within a job
         :param kwargs: any keyword arguments to pass to the function
-        :return: :class:`arq.jobs.Job` instance or ``None`` if a job with this ID already exists
+        :return: :class:`arku.jobs.Job` instance or ``None`` if a job with this ID already exists
         """
         if _queue_name is None:
             _queue_name = self.default_queue_name
@@ -214,11 +214,11 @@ async def create_pool(
     job_serializer: Optional[Serializer] = None,
     job_deserializer: Optional[Deserializer] = None,
     default_queue_name: str = default_queue_name,
-) -> ArqRedis:
+) -> ArkuRedis:
     """
     Create a new redis pool, retrying up to ``conn_retries`` times if the connection fails.
 
-    Similar to ``aioredis.create_redis_pool`` except it returns a :class:`arq.connections.ArqRedis` instance,
+    Similar to ``aioredis.create_redis_pool`` except it returns a :class:`arku.connections.ArkuRedis` instance,
     thus allowing job enqueuing.
     """
     settings: RedisSettings = RedisSettings() if settings_ is None else settings_
@@ -229,13 +229,13 @@ async def create_pool(
 
     if settings.sentinel:
 
-        def pool_factory(*args: Any, **kwargs: Any) -> ArqRedis:
+        def pool_factory(*args: Any, **kwargs: Any) -> ArkuRedis:
             client = Sentinel(*args, sentinels=settings.host, ssl=settings.ssl, **kwargs)  # type: ignore
-            return client.master_for(settings.sentinel_master, redis_class=ArqRedis)
+            return client.master_for(settings.sentinel_master, redis_class=ArkuRedis)
 
     else:
         pool_factory = functools.partial(
-            ArqRedis,
+            ArkuRedis,
             host=settings.host,
             port=settings.port,
             socket_connect_timeout=settings.conn_timeout,

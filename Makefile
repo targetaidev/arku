@@ -28,22 +28,22 @@ build: bootstrap
 	$(PYTHON) setup.py sdist bdist_wheel
 
 fmt: bootstrap
-	$(PYTHON) -m isort arq tests
-	$(PYTHON) -m black -S -l 120 arq tests
+	$(PYTHON) -m isort arku tests
+	$(PYTHON) -m black -S -l 120 arku tests
 
 lint: bootstrap
-	$(PYTHON) -m flake8 arq/ tests/
-	$(PYTHON) -m isort arq tests --check-only --df
-	$(PYTHON) -m black -S -l 120 arq tests --check
+	$(PYTHON) -m flake8 arku/ tests/
+	$(PYTHON) -m isort arku tests --check-only --df
+	$(PYTHON) -m black -S -l 120 arku tests --check
 
 mypy: bootstrap
-	$(PYTHON) -m mypy arq
+	$(PYTHON) -m mypy arku
 
 outdated: bootstrap
 	$(PYTHON) -m pip list --outdated --format=columns
 
 test: bootstrap
-	$(PYTHON) -m pytest --cov=arq
+	$(PYTHON) -m pytest --cov=arku
 
 testcov: test
 	$(PYTHON) -m coverage html

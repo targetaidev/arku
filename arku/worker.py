@@ -12,10 +12,10 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Sequence,
 from aioredis.exceptions import ResponseError, WatchError
 from pydantic.utils import import_string
 
-from arq.cron import CronJob
-from arq.jobs import Deserializer, JobResult, SerializationError, Serializer, deserialize_job_raw, serialize_result
+from arku.cron import CronJob
+from arku.jobs import Deserializer, JobResult, SerializationError, Serializer, deserialize_job_raw, serialize_result
 
-from .connections import ArqRedis, RedisSettings, create_pool, log_redis_info
+from .connections import ArkuRedis, RedisSettings, create_pool, log_redis_info
 from .constants import (
     abort_job_max_age,
     abort_jobs_ss,
@@ -32,7 +32,7 @@ from .utils import args_to_string, ms_to_datetime, poll, timestamp_ms, to_ms, to
 if TYPE_CHECKING:
     from .typing import SecondsTimedelta, StartupShutdown, WorkerCoroutine, WorkerSettingsType  # noqa F401
 
-logger = logging.getLogger('arq.worker')
+logger = logging.getLogger('arku.worker')
 no_result = object()
 
 
@@ -130,9 +130,9 @@ class Worker:
     Main class for running jobs.
 
     :param functions: list of functions to register, can either be raw coroutine functions or the
-      result of :func:`arq.worker.func`.
+      result of :func:`arku.worker.func`.
     :param queue_name: queue name to get jobs from
-    :param cron_jobs:  list of cron jobs to run, use :func:`arq.cron.cron` to create them
+    :param cron_jobs:  list of cron jobs to run, use :func:`arku.cron.cron` to create them
     :param redis_settings: settings for creating a redis connection
     :param redis_pool: existing redis pool, generally None
     :param burst: whether to stop the worker once all jobs have been run
@@ -152,7 +152,7 @@ class Worker:
     :param health_check_key: redis key under which health check is set
     :param ctx: dictionary to hold extra user defined state
     :param retry_jobs: whether to retry jobs on Retry or CancelledError or not
-    :param allow_abort_jobs: whether to abort jobs on a call to :func:`arq.jobs.Job.abort`
+    :param allow_abort_jobs: whether to abort jobs on a call to :func:`arku.jobs.Job.abort`
     :param max_burst_jobs: the maximum number of jobs to process in burst mode (disabled with negative values)
     :param job_serializer: a function that serializes Python objects to bytes, defaults to pickle.dumps
     :param job_deserializer: a function that deserializes bytes into Python objects, defaults to pickle.loads
@@ -165,7 +165,7 @@ class Worker:
         queue_name: Optional[str] = default_queue_name,
         cron_jobs: Optional[Sequence[CronJob]] = None,
         redis_settings: RedisSettings = None,
-        redis_pool: ArqRedis = None,
+        redis_pool: ArkuRedis = None,
         burst: bool = False,
         on_startup: Optional['StartupShutdown'] = None,
         on_shutdown: Optional['StartupShutdown'] = None,
@@ -269,7 +269,7 @@ class Worker:
 
     async def run_check(self, retry_jobs: Optional[bool] = None, max_burst_jobs: Optional[int] = None) -> int:
         """
-        Run :func:`arq.worker.Worker.async_run`, check for failed jobs and raise :class:`arq.worker.FailedJobs`
+        Run :func:`arku.worker.Worker.async_run`, check for failed jobs and raise :class:`arku.worker.FailedJobs`
         if any jobs have failed.
 
         :return: number of completed jobs
@@ -286,8 +286,8 @@ class Worker:
             return self.jobs_complete
 
     @property
-    def pool(self) -> ArqRedis:
-        return cast(ArqRedis, self._pool)
+    def pool(self) -> ArkuRedis:
+        return cast(ArkuRedis, self._pool)
 
     async def main(self) -> None:
         if self._pool is None:
@@ -775,7 +775,7 @@ async def async_check_health(
     redis_settings: Optional[RedisSettings], health_check_key: Optional[str] = None, queue_name: Optional[str] = None
 ) -> int:
     redis_settings = redis_settings or RedisSettings()
-    redis: ArqRedis = await create_pool(redis_settings)
+    redis: ArkuRedis = await create_pool(redis_settings)
     queue_name = queue_name or default_queue_name
     health_check_key = health_check_key or (queue_name + health_check_key_suffix)
 

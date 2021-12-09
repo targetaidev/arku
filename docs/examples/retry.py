@@ -1,7 +1,9 @@
 import asyncio
+
 from aiohttp import ClientSession
-from arq import create_pool, Retry
-from arq.connections import RedisSettings
+from arku import create_pool, Retry
+from arku.connections import RedisSettings
+
 
 async def download_content(ctx, url):
     session: ClientSession = ctx['session']
@@ -14,20 +16,25 @@ async def download_content(ctx, url):
         content = await response.text()
     return len(content)
 
+
 async def startup(ctx):
     ctx['session'] = ClientSession()
 
+
 async def shutdown(ctx):
     await ctx['session'].close()
+
 
 async def main():
     redis = await create_pool(RedisSettings())
     await redis.enqueue_job('download_content', 'https://httpbin.org/status/503')
 
+
 class WorkerSettings:
     functions = [download_content]
     on_startup = startup
     on_shutdown = shutdown
+
 
 if __name__ == '__main__':
     asyncio.run(main())

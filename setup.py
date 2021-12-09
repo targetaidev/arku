@@ -7,7 +7,7 @@ def _get_long_description():
 
 
 setuptools.setup(
-    name='arq',
+    name='arku',
     use_scm_version=True,
     description='Fast job queuing and RPC in Python with asyncio and Redis',
     long_description=_get_long_description(),
@@ -40,16 +40,16 @@ setuptools.setup(
         'Issues': 'https://github.com/targetaidev/arku/issues',
     },
     python_requires='>=3.8,<4',
-    author='TargetAI LLC',
+    author='TargetAI Ltd.',
     author_email='dev@targetai.kz',
     url='https://github.com/targetaidev/arku',
     license='MIT',
-    packages=['arq'],
-    package_data={'arq': ['py.typed']},
+    packages=['arku'],
+    package_data={'arku': ['py.typed']},
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'arq=arq.cli:cli',
+            'arku=arku.cli:cli',
         ],
     },
     install_requires=[

@@ -5,9 +5,9 @@ from datetime import timedelta
 import pytest
 from pydantic import BaseModel, validator
 
-import arq.typing
-import arq.utils
-from arq.connections import RedisSettings, log_redis_info
+import arku.typing
+import arku.utils
+from arku.connections import RedisSettings, log_redis_info
 
 
 def test_settings_changed():
@@ -20,10 +20,10 @@ def test_settings_changed():
 
 
 async def test_redis_timeout(mocker, create_pool):
-    mocker.spy(arq.utils.asyncio, 'sleep')
+    mocker.spy(arku.utils.asyncio, 'sleep')
     with pytest.raises(OSError):
         await create_pool(RedisSettings(port=0, conn_retry_delay=0))
-    assert arq.utils.asyncio.sleep.call_count == 5
+    assert arku.utils.asyncio.sleep.call_count == 5
 
 
 async def test_redis_sentinel_failure(create_pool):
@@ -70,29 +70,29 @@ async def test_redis_log(create_pool):
 
 
 def test_truncate():
-    assert arq.utils.truncate('123456', 4) == '123…'
+    assert arku.utils.truncate('123456', 4) == '123…'
 
 
 def test_args_to_string():
-    assert arq.utils.args_to_string((), {'d': 4}) == 'd=4'
-    assert arq.utils.args_to_string((1, 2, 3), {}) == '1, 2, 3'
-    assert arq.utils.args_to_string((1, 2, 3), {'d': 4}) == '1, 2, 3, d=4'
+    assert arku.utils.args_to_string((), {'d': 4}) == 'd=4'
+    assert arku.utils.args_to_string((1, 2, 3), {}) == '1, 2, 3'
+    assert arku.utils.args_to_string((1, 2, 3), {'d': 4}) == '1, 2, 3, d=4'
 
 
 @pytest.mark.parametrize(
     'input,output', [(timedelta(days=1), 86_400_000), (42, 42000), (42.123, 42123), (42.123_987, 42124), (None, None)]
 )
 def test_to_ms(input, output):
-    assert arq.utils.to_ms(input) == output
+    assert arku.utils.to_ms(input) == output
 
 
 @pytest.mark.parametrize('input,output', [(timedelta(days=1), 86400), (42, 42), (42.123, 42.123), (None, None)])
 def test_to_seconds(input, output):
-    assert arq.utils.to_seconds(input) == output
+    assert arku.utils.to_seconds(input) == output
 
 
 def test_typing():
-    assert 'OptionType' in arq.typing.__all__
+    assert 'OptionType' in arku.typing.__all__
 
 
 def test_redis_settings_validation():
