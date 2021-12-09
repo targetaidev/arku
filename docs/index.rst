@@ -256,7 +256,7 @@ Reference
 .. |pypi| image:: https://img.shields.io/pypi/v/arq.svg
    :target: https://pypi.python.org/pypi/arq
 .. |license| image:: https://img.shields.io/pypi/l/arq.svg
-   :target: https://github.com/samuelcolvin/arq
+   :target: https://github.com/targetaidev/arku
 .. _asyncio: https://docs.python.org/3/library/asyncio.html
 .. _watchgod: https://pypi.org/project/watchgod/
 .. _rq: http://python-rq.org/

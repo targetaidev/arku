@@ -19,8 +19,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 project = 'arq'
-copyright = '2016, Samuel Colvin'
-author = 'Samuel Colvin'
+copyright = '2021, TargetAI LLC'
+author = 'TargetAI LLC'
 version = release = importlib.metadata.version('arq')
 
 pygments_style = 'sphinx'
@@ -29,7 +29,7 @@ todo_include_todos = True
 
 html_theme = 'alabaster'
 html_theme_options = {
-    'github_user': 'samuelcolvin',
+    'github_user': 'targetaidev',
     'github_repo': 'arq',
     'travis_button': True,
     'codecov_button': True,

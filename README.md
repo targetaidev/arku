@@ -1,11 +1,11 @@
 # arq
 
-[![CI](https://github.com/samuelcolvin/arq/workflows/CI/badge.svg?event=push)](https://github.com/samuelcolvin/arq/actions?query=event%3Apush+branch%3Amaster+workflow%3ACI)
-[![Coverage](https://codecov.io/gh/samuelcolvin/arq/branch/master/graph/badge.svg)](https://codecov.io/gh/samuelcolvin/arq)
+[![CI](https://github.com/targetaidev/arku/workflows/CI/badge.svg?event=push)](https://github.com/targetaidev/arku/actions?query=event%3Apush+branch%3Amaster+workflow%3ACI)
+[![Coverage](https://codecov.io/gh/targetaidev/arku/branch/master/graph/badge.svg)](https://codecov.io/gh/targetaidev/arku)
 [![pypi](https://img.shields.io/pypi/v/arq.svg)](https://pypi.python.org/pypi/arq)
-[![versions](https://img.shields.io/pypi/pyversions/arq.svg)](https://github.com/samuelcolvin/arq)
-[![license](https://img.shields.io/github/license/samuelcolvin/arq.svg)](https://github.com/samuelcolvin/arq/blob/master/LICENSE)
+[![versions](https://img.shields.io/pypi/pyversions/arq.svg)](https://github.com/targetaidev/arku)
+[![license](https://img.shields.io/github/license/targetaidev/arku.svg)](https://github.com/targetaidev/arku/blob/master/LICENSE)
 
-Job queues in python with asyncio and redis.
+Fast job queuing and RPC in Python with asyncio and Redis.
 
-See [documentation](https://arq-docs.helpmanual.io/) for more details.
+See [documentation](https://arku.readthedocs.io) for more details.

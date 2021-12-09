@@ -1,20 +1,16 @@
-import pathlib
 import setuptools
 
 
-description = 'Job queues in python with asyncio and redis'
-readme = pathlib.Path(__file__).parent / 'README.md'
-if readme.exists():
-    long_description = readme.read_text()
-else:
-    long_description = description + '.\n\nSee https://arq-docs.helpmanual.io/ for documentation.'
+def _get_long_description():
+    with open('README.md') as readme_file:
+        return readme_file.read()
 
 
 setuptools.setup(
     name='arq',
     use_scm_version=True,
-    description=description,
-    long_description=long_description,
+    description='Fast job queuing and RPC in Python with asyncio and Redis',
+    long_description=_get_long_description(),
     long_description_content_type='text/markdown',
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -38,18 +34,24 @@ setuptools.setup(
         'Topic :: System :: Monitoring',
         'Topic :: System :: Systems Administration',
     ],
-    python_requires='>=3.8',
-    author='Samuel Colvin',
-    author_email='s@muelcolvin.com',
-    url='https://github.com/samuelcolvin/arq',
+    project_urls={
+        'Documentation': 'https://arku.readthedocs.io',
+        'Code': 'https://github.com/targetaidev/arku',
+        'Issues': 'https://github.com/targetaidev/arku/issues',
+    },
+    python_requires='>=3.8,<4',
+    author='TargetAI LLC',
+    author_email='dev@targetai.kz',
+    url='https://github.com/targetaidev/arku',
     license='MIT',
     packages=['arq'],
     package_data={'arq': ['py.typed']},
-    zip_safe=True,
-    entry_points="""
-        [console_scripts]
-        arq=arq.cli:cli
-    """,
+    zip_safe=False,
+    entry_points={
+        'console_scripts': [
+            'arq=arq.cli:cli',
+        ],
+    },
     install_requires=[
         'aioredis>=2.0,<3',
         'click>=6.7,<9',
