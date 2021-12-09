@@ -12,7 +12,6 @@ help:
 	@echo "  build       - build project packages"
 	@echo "  fmt         - format source code according to project conventions"
 	@echo "  lint        - inspect project source code for errors"
-	@echo "  mypy        - run type checking with mypy"
 	@echo "  outdated    - list outdated project requirements"
 	@echo "  test        - run project tests"
 	@echo "  testcov     - project test coverage reports"
@@ -36,8 +35,6 @@ lint: bootstrap
 	$(PYTHON) -m flake8 arku/ tests/
 	$(PYTHON) -m isort arku tests --check-only --df
 	$(PYTHON) -m black -S -l 120 arku tests --check
-
-mypy: bootstrap
 	$(PYTHON) -m mypy arku
 
 outdated: bootstrap

@@ -13,7 +13,6 @@ jobs:
         python-version: 3.9
 
     - run: make lint
-    - run: make mypy
 
   test:
     name: test py${{ matrix.python-version }} on ${{ matrix.os }}

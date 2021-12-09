@@ -744,7 +744,7 @@ class Worker:
         if self._handle_signals:
             await self.close_pool()
 
-    async def close_pool(self):
+    async def close_pool(self) -> None:
         await self.pool.close()  # type: ignore
         self._pool = None
 
