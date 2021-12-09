@@ -10,6 +10,12 @@ $(VENV)/bin/activate:
 	$(PYTHON) -m pip install -U pip==21.3.1 setuptools==59.4.0 wheel==0.37.0
 	$(PYTHON) -m pip install -e .[dev,doc,test]
 
+build: bootstrap
+	$(PYTHON) setup.py sdist bdist_wheel
+
+upload: build
+	$(PYTHON) -m twine upload dist/*
+
 .PHONY: format
 format: bootstrap
 	$(PYTHON) -m isort arq tests

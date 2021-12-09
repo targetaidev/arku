@@ -7,7 +7,7 @@ def _get_long_description():
 
 
 setuptools.setup(
-    name='arq',
+    name='arku',
     use_scm_version=True,
     description='Fast job queuing and RPC in Python with asyncio and Redis',
     long_description=_get_long_description(),
