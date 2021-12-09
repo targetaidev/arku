@@ -6,7 +6,7 @@
 [![versions](https://img.shields.io/pypi/pyversions/arku.svg)](https://github.com/targetaidev/arku)
 [![license](https://img.shields.io/github/license/targetaidev/arku.svg)](https://github.com/targetaidev/arku/blob/master/LICENSE)
 
-`arku`, pronounced as `ar·kyu` is a fast job queuing and RPC in Python with asyncio and Redis.
+`arku`, pronounced as `ar·kyu`, is a fast job queuing and RPC in Python with asyncio and Redis.
 
 ## Installation
 
@@ -20,4 +20,4 @@ See [documentation](https://arku.readthedocs.io) for more details.
 
 ## Acknowledgements
 
-This project is a fork of [arq](https://github.com/samuelcolvin/arq). Many thanks to [Samuel Colvin](https://github.com/samuelcolvin) all the contributors.
+This project is a fork of [arq](https://github.com/samuelcolvin/arq). Many thanks to [Samuel Colvin](https://github.com/samuelcolvin) all the [contributors](https://github.com/samuelcolvin/arq/graphs/contributors).
