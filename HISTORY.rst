@@ -3,6 +3,19 @@
 History
 -------
 
+v0.22 (2021-09-02)
+..................
+
+* fix package importing in example, #261, thanks @cdpath
+* restrict ``aioredis`` to ``<2.0.0`` (soon we'll support ``aioredis>=2.0.0``), #258, thanks @PaxPrz
+* auto setting version on release, 759fe03
+
+v0.21 (2021-07-06)
+..................
+
+* CI improvements #243
+* fix ``log_redis_info`` #255
+
 v0.20 (2021-04-26)
 ..................
 
