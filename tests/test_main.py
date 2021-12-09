@@ -146,7 +146,11 @@ async def test_repeat_job(arku_redis: ArkuRedis):
 
 
 async def test_defer_until(arku_redis: ArkuRedis):
-    j1 = await arku_redis.enqueue_job('foobar', _job_id='job_id', _defer_until=datetime(2032, 1, 1, tzinfo=timezone.utc))
+    j1 = await arku_redis.enqueue_job(
+        'foobar',
+        _job_id='job_id',
+        _defer_until=datetime(2032, 1, 1, tzinfo=timezone.utc),
+    )
     assert isinstance(j1, Job)
     score = await arku_redis.zscore(default_queue_name, 'job_id')
     assert score == 1_956_528_000_000
@@ -173,7 +177,10 @@ async def test_mung(arku_redis: ArkuRedis, worker):
     tasks = []
     for i in range(50):
         tasks.extend(
-            [arku_redis.enqueue_job('count', i, _job_id=f'v-{i}'), arku_redis.enqueue_job('count', i, _job_id=f'v-{i}')]
+            [
+                arku_redis.enqueue_job('count', i, _job_id=f'v-{i}'),
+                arku_redis.enqueue_job('count', i, _job_id=f'v-{i}'),
+            ]
         )
     shuffle(tasks)
     await asyncio.gather(*tasks)
