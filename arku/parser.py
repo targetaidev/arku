@@ -1,5 +1,5 @@
 #  type: ignore
-# aioredis-py misses lots of type annotations, and there are no external stubs for it
+# redis-py misses lots of type annotations, and there are no external stubs for it
 
 from contextlib import contextmanager
 from contextvars import ContextVar
