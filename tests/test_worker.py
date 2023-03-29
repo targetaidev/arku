@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 
 import msgpack
 import pytest
-from aioredis import Redis
+from redis.asyncio import Redis
 
 from arku.connections import ArkuRedis
 from arku.constants import abort_jobs_ss, default_queue_name, health_check_key_suffix, job_key_prefix

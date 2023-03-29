@@ -10,11 +10,10 @@ from typing import Any, Callable, Generator, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 from uuid import uuid4
 
-import aioredis
-from aioredis import ConnectionPool, Redis
-from aioredis.exceptions import ResponseError, WatchError
-from aioredis.sentinel import Sentinel
 from pydantic.validators import make_arbitrary_type_validator
+from redis.asyncio import ConnectionPool, Redis
+from redis.asyncio.sentinel import Sentinel
+from redis.exceptions import RedisError, ResponseError, WatchError
 
 from .constants import default_queue_name, job_key_prefix, result_key_prefix
 from .jobs import Deserializer, Job, JobDef, JobResult, Serializer, deserialize_job, serialize_job
@@ -76,13 +75,13 @@ expires_extra_ms = 86_400_000
 
 class ArkuRedis(Redis):
     """
-    Thin subclass of ``aioredis.Redis`` which adds :func:`arku.connections.enqueue_job`.
+    Thin subclass of ``redis.asyncio.Redis`` which adds :func:`arku.connections.enqueue_job`.
 
     :param redis_settings: an instance of ``arku.connections.RedisSettings``.
     :param job_serializer: a function that serializes Python objects to bytes, defaults to pickle.dumps
     :param job_deserializer: a function that deserializes bytes into Python objects, defaults to pickle.loads
     :param default_queue_name: the default queue name to use, defaults to ``arku.queue``.
-    :param kwargs: keyword arguments directly passed to ``aioredis.Redis``.
+    :param kwargs: keyword arguments directly passed to ``redis.asyncio.Redis``.
     """
 
     def __init__(
@@ -218,8 +217,7 @@ async def create_pool(
     """
     Create a new redis pool, retrying up to ``conn_retries`` times if the connection fails.
 
-    Similar to ``aioredis.create_redis_pool`` except it returns a :class:`arku.connections.ArkuRedis` instance,
-    thus allowing job enqueuing.
+    Returns a :class:`arku.connections.ArkuRedis` instance, thus allowing job enqueuing.
     """
     settings: RedisSettings = RedisSettings() if settings_ is None else settings_
 
@@ -249,7 +247,7 @@ async def create_pool(
         pool.default_queue_name = default_queue_name
         await pool.ping()
 
-    except (ConnectionError, OSError, aioredis.RedisError, asyncio.TimeoutError) as e:
+    except (ConnectionError, OSError, RedisError, asyncio.TimeoutError) as e:
         if retry < settings.conn_retries:
             logger.warning(
                 'redis connection error %s:%s %s %s, %d retries remaining...',
