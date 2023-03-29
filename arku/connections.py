@@ -95,6 +95,7 @@ class ArkuRedis(Redis):
         self.job_serializer = job_serializer
         self.job_deserializer = job_deserializer
         self.default_queue_name = default_queue_name
+        kwargs['auto_close_connection_pool'] = False
         if pool_or_conn:
             kwargs['connection_pool'] = pool_or_conn
         super().__init__(**kwargs)

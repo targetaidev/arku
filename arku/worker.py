@@ -380,6 +380,7 @@ class Worker:
         for job_id in job_ids:
             await self.sem.acquire()
             in_progress_key = in_progress_key_prefix + job_id
+
             async with self.pool as conn:
                 pipe = conn.pipeline()
                 await pipe.unwatch()
