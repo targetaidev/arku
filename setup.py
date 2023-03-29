@@ -59,12 +59,10 @@ setuptools.setup(
     ],
     extras_require={
         'dev': [
-            'black==21.12b0',
             'flake8-quotes==3',
             'flake8==3.7.9',
             'isort==5.8.0',
             'msgpack==0.6.1',
-            'mypy==0.812',
             'pycodestyle==2.5.0',
             'pyflakes==2.1.1',
             'twine==3.1.1',

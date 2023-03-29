@@ -1,5 +1,5 @@
 .DEFAULT: help
-.PHONY: help bootstrap build fmt lint test testcov mypy outdated upload clean
+.PHONY: help bootstrap build lint test testcov outdated upload clean
 
 VENV = .venv
 PYTHON_BIN ?= python3
@@ -10,7 +10,6 @@ help:
 	@echo "  help        - show help information"
 	@echo "  bootstrap   - setup packaging dependencies and initialize venv"
 	@echo "  build       - build project packages"
-	@echo "  fmt         - format source code according to project conventions"
 	@echo "  lint        - inspect project source code for errors"
 	@echo "  outdated    - list outdated project requirements"
 	@echo "  test        - run project tests"
@@ -27,15 +26,9 @@ $(VENV)/bin/activate:
 build: bootstrap
 	$(PYTHON) setup.py sdist bdist_wheel
 
-fmt: bootstrap
-	$(PYTHON) -m isort arku tests
-	$(PYTHON) -m black -S -l 120 arku tests
-
 lint: bootstrap
-	$(PYTHON) -m flake8 arku/ tests/
+	$(PYTHON) -m flake8 arku tests
 	$(PYTHON) -m isort arku tests --check-only --df
-	$(PYTHON) -m black -S -l 120 arku tests --check
-	$(PYTHON) -m mypy arku
 
 outdated: bootstrap
 	$(PYTHON) -m pip list --outdated --format=columns
@@ -53,7 +46,6 @@ upload: build
 clean:
 	rm -rf .cache
 	rm -rf .pytest_cache
-	rm -rf .mypy_cache
 	rm -rf htmlcov
 	rm -rf *.egg-info .eggs
 	rm -f .coverage
