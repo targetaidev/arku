@@ -84,16 +84,12 @@ class ContextAwareHiredisParser(HiredisParser):
                 errors=self._encoder.encoding_errors,
             )
 
-    async def read_response(self) -> EncodableT:
-        if not self._stream or not self._reader:
-            self.on_disconnect()
+    async def read_response(self, disable_decoding: bool = False) -> EncodableT:
+        # If `on_disconnect()` has been called, prohibit any more reads
+        # even if they could happen because data might be present.
+        # We still allow reads in progress to finish
+        if not self._connected:
             raise ConnectionError(SERVER_CLOSED_CONNECTION_ERROR) from None
-
-        # _next_response might be cached from a can_read() call
-        if self._next_response is not False:
-            response = self._next_response
-            self._next_response = False
-            return response
 
         with self._encoder_context():
             response = self._reader.gets()
@@ -107,7 +103,11 @@ class ContextAwareHiredisParser(HiredisParser):
         # happened
         if isinstance(response, ConnectionError):
             raise response
-        elif isinstance(response, list) and response and isinstance(response[0], ConnectionError):
+        elif (
+            isinstance(response, list)
+            and response
+            and isinstance(response[0], ConnectionError)
+        ):
             raise response[0]
         return response
 
