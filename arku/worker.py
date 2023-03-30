@@ -9,8 +9,8 @@ from signal import Signals
 from time import time
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Sequence, Set, Tuple, Union, cast
 
-from aioredis.exceptions import ResponseError, WatchError
 from pydantic.utils import import_string
+from redis.exceptions import ResponseError, WatchError
 
 from arku.cron import CronJob
 from arku.jobs import Deserializer, JobResult, SerializationError, Serializer, deserialize_job_raw, serialize_result
@@ -380,6 +380,7 @@ class Worker:
         for job_id in job_ids:
             await self.sem.acquire()
             in_progress_key = in_progress_key_prefix + job_id
+
             async with self.pool as conn:
                 pipe = conn.pipeline()
                 await pipe.unwatch()

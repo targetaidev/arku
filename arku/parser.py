@@ -1,19 +1,12 @@
 #  type: ignore
-# aioredis-py misses lots of type annotations, and there are no external stubs for it
+# redis-py misses lots of type annotations, and there are no external stubs for it
 
 from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Any, Dict, Generator, Optional, Type, Union
 
-from aioredis.connection import (
-    SERVER_CLOSED_CONNECTION_ERROR,
-    Connection,
-    EncodableT,
-    EncodedT,
-    Encoder,
-    HiredisParser,
-    PythonParser,
-)
+from redis.asyncio.connection import SERVER_CLOSED_CONNECTION_ERROR, Connection, Encoder, HiredisParser, PythonParser
+from redis.typing import EncodableT, EncodedT
 
 try:
     import hiredis  # noqa: F401
