@@ -1,16 +1,15 @@
 import asyncio
 import functools
 import logging
-import ssl
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from operator import attrgetter
+from ssl import SSLContext
 from typing import Any, Callable, Generator, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 from uuid import uuid4
 
-from pydantic.validators import make_arbitrary_type_validator
 from redis.asyncio import ConnectionPool, Redis
 from redis.asyncio.sentinel import Sentinel
 from redis.exceptions import RedisError, ResponseError, WatchError
@@ -21,16 +20,6 @@ from .parser import ContextAwareDefaultParser, ContextAwareEncoder, encoder_opti
 from .utils import timestamp_ms, to_ms, to_unix_ms
 
 logger = logging.getLogger('arku.connections')
-
-
-class SSLContext(ssl.SSLContext):
-    """
-    Required to avoid problems with
-    """
-
-    @classmethod
-    def __get_validators__(cls) -> Generator[Callable[..., Any], None, None]:
-        yield make_arbitrary_type_validator(ssl.SSLContext)
 
 
 @dataclass
