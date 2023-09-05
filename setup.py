@@ -54,7 +54,7 @@ setuptools.setup(
     },
     install_requires=[
         'click>=6.7,<9',
-        'redis>=4.2,<5',
+        'redis>=4.2,<6',
     ],
     extras_require={
         'dev': [

@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Any, Dict, Generator, Optional, Type, Union
 
-from redis.asyncio.connection import SERVER_CLOSED_CONNECTION_ERROR, Connection, Encoder, HiredisParser, PythonParser
+from redis.asyncio.connection import Connection, Encoder, _AsyncHiredisParser, _AsyncRESP2Parser
 from redis.typing import EncodableT, EncodedT
 
 try:
@@ -47,13 +47,13 @@ class ContextAwareEncoder(Encoder):
             return super().decode(value, force)
 
 
-class ContextAwareHiredisParser(HiredisParser):
+class ContextAwareHiredisParser(_AsyncHiredisParser):
     """
     HiredisParser has no properties, therefore we need to subclass
     almost every method to store encoder from the connection
     """
 
-    __slots__ = HiredisParser.__slots__ + ('_encoder',)
+    __slots__ = _AsyncHiredisParser.__slots__ + ('_encoder',)
 
     def __init__(self, socket_read_size: int):
         super().__init__(socket_read_size=socket_read_size)
@@ -89,7 +89,7 @@ class ContextAwareHiredisParser(HiredisParser):
         # even if they could happen because data might be present.
         # We still allow reads in progress to finish
         if not self._connected:
-            raise ConnectionError(SERVER_CLOSED_CONNECTION_ERROR) from None
+            raise ConnectionError('Connection closed by server.') from None
 
         with self._encoder_context():
             response = self._reader.gets()
@@ -112,8 +112,8 @@ class ContextAwareHiredisParser(HiredisParser):
         return response
 
 
-ContextAwareDefaultParser: Type[Union[PythonParser, ContextAwareHiredisParser]]
+ContextAwareDefaultParser: Type[Union[_AsyncRESP2Parser, ContextAwareHiredisParser]]
 if HIREDIS_AVAILABLE:
     ContextAwareDefaultParser = ContextAwareHiredisParser
 else:
-    ContextAwareDefaultParser = PythonParser
+    ContextAwareDefaultParser = _AsyncRESP2Parser
