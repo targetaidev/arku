@@ -5,8 +5,14 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Any, Dict, Generator, Optional, Type, Union
 
-from redis.asyncio.connection import Connection, Encoder, _AsyncHiredisParser, _AsyncRESP2Parser
+from redis.asyncio.connection import Connection, Encoder
 from redis.typing import EncodableT, EncodedT
+
+try:
+    from redis.asyncio.connection import _AsyncHiredisParser as HiredisParser, _AsyncRESP2Parser as PythonParser
+    SERVER_CLOSED_CONNECTION_ERROR = 'Connection closed by server.'
+except (ImportError, ModuleNotFoundError):
+    from redis.asyncio.connection import SERVER_CLOSED_CONNECTION_ERROR, HiredisParser, PythonParser
 
 try:
     import hiredis  # noqa: F401
@@ -16,11 +22,6 @@ except (ImportError, ModuleNotFoundError):
     HIREDIS_AVAILABLE = False
 
 
-SERVER_CLOSED_CONNECTION_ERROR = 'Connection closed by server.'
-
-
-HiredisParser = _AsyncHiredisParser
-PythonParser = _AsyncRESP2Parser
 encoder_options_var: ContextVar[Optional[Dict[str, Any]]] = ContextVar('encoder_kwargs', default=None)
 
 
