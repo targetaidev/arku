@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+from dataclasses import dataclass
 from datetime import timedelta
 
 import pytest
@@ -113,3 +114,24 @@ def test_import_no_attr():
         arku.utils.import_string('os.foobar')
 
     assert exc_info.value.args[0] == 'Module "os" does not define a "foobar" attribute'
+
+
+def test_redis_settings_validation():
+    @dataclass
+    class Settings:
+        redis_settings: RedisSettings
+
+    s1 = Settings(redis_settings=RedisSettings.from_dsn('redis://foobar:123/4'))
+    assert s1.redis_settings.host == 'foobar'
+    assert s1.redis_settings.host == 'foobar'
+    assert s1.redis_settings.port == 123
+    assert s1.redis_settings.database == 4
+    assert s1.redis_settings.ssl is False
+
+    s2 = Settings(redis_settings=RedisSettings(host='testing.com'))
+    assert s2.redis_settings.host == 'testing.com'
+    assert s2.redis_settings.port == 6379
+
+    s3 = Settings(redis_settings=RedisSettings(ssl=True))
+    assert s3.redis_settings.host == 'localhost'
+    assert s3.redis_settings.ssl is True
