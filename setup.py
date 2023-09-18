@@ -58,13 +58,11 @@ setuptools.setup(
     ],
     extras_require={
         'dev': [
-            'flake8-quotes==3',
-            'flake8==3.7.9',
-            'isort==5.8.0',
-            'msgpack==0.6.1',
-            'pycodestyle==2.5.0',
-            'pyflakes==2.1.1',
-            'watchgod>=0.4',
+            'flake8-quotes==3.3.2',
+            'flake8==6.1.0',
+            'isort==5.12.0',
+            'msgpack==1.0.5',
+            'watchgod>=0.8.2',
         ],
         'doc': [
             'docutils==0.14',
