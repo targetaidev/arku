@@ -54,7 +54,6 @@ setuptools.setup(
     },
     install_requires=[
         'click>=6.7,<9',
-        'pydantic>=1,<2',
         'redis>=4.2,<5',
     ],
     extras_require={

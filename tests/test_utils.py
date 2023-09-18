@@ -1,9 +1,10 @@
 import logging
+import os
 import re
+from dataclasses import dataclass
 from datetime import timedelta
 
 import pytest
-from pydantic import BaseModel, validator
 
 import arku.typing
 import arku.utils
@@ -97,31 +98,40 @@ def test_typing():
     assert 'OptionType' in arku.typing.__all__
 
 
+def test_import_module():
+    assert arku.utils.import_string('os.path') == os.path
+
+
+def test_import_module_invalid():
+    with pytest.raises(ImportError) as exc_info:
+        arku.utils.import_string('xx')
+
+    assert exc_info.value.args[0] == '"xx" doesn\'t look like a module path'
+
+
+def test_import_no_attr():
+    with pytest.raises(ImportError) as exc_info:
+        arku.utils.import_string('os.foobar')
+
+    assert exc_info.value.args[0] == 'Module "os" does not define a "foobar" attribute'
+
+
 def test_redis_settings_validation():
-    class Settings(BaseModel):
+    @dataclass
+    class Settings:
         redis_settings: RedisSettings
 
-        @validator('redis_settings', always=True, pre=True)
-        def parse_redis_settings(cls, v):
-            if isinstance(v, str):
-                return RedisSettings.from_dsn(v)
-            else:
-                return v
-
-    s1 = Settings(redis_settings='redis://foobar:123/4')
+    s1 = Settings(redis_settings=RedisSettings.from_dsn('redis://foobar:123/4'))
     assert s1.redis_settings.host == 'foobar'
     assert s1.redis_settings.host == 'foobar'
     assert s1.redis_settings.port == 123
     assert s1.redis_settings.database == 4
     assert s1.redis_settings.ssl is False
 
-    s2 = Settings(redis_settings={'host': 'testing.com'})
+    s2 = Settings(redis_settings=RedisSettings(host='testing.com'))
     assert s2.redis_settings.host == 'testing.com'
     assert s2.redis_settings.port == 6379
 
-    with pytest.raises(ValueError, match='instance of SSLContext expected'):
-        Settings(redis_settings={'ssl': 123})
-
-    s3 = Settings(redis_settings={'ssl': True})
+    s3 = Settings(redis_settings=RedisSettings(ssl=True))
     assert s3.redis_settings.host == 'localhost'
     assert s3.redis_settings.ssl is True
