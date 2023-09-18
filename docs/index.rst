@@ -251,8 +251,6 @@ Reference
 .. automodule:: arku.jobs
    :members: JobStatus, Job
 
-.. include:: ../HISTORY.rst
-
 .. |pypi| image:: https://img.shields.io/pypi/v/arku.svg
    :target: https://pypi.python.org/pypi/arku
 .. |license| image:: https://img.shields.io/pypi/l/arku.svg
