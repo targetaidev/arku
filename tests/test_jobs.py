@@ -1,8 +1,9 @@
 import asyncio
+import datetime
 import pickle
 
+import dirty_equals
 import pytest
-from pytest_toolbox.comparison import CloseToNow
 
 from arku import Worker, func
 from arku.connections import ArkuRedis, RedisSettings, create_pool
@@ -49,11 +50,11 @@ async def test_enqueue_job(arku_redis: ArkuRedis, worker, queue_name=default_que
         function='foobar',
         args=(1, 2),
         kwargs={'c': 3},
-        enqueue_time=CloseToNow(),
+        enqueue_time=dirty_equals.IsNow(tz=datetime.timezone.utc),
         success=True,
         result=42,
-        start_time=CloseToNow(),
-        finish_time=CloseToNow(),
+        start_time=dirty_equals.IsNow(tz=datetime.timezone.utc),
+        finish_time=dirty_equals.IsNow(tz=datetime.timezone.utc),
         score=None,
         queue_name=expected_queue_name,
     )
@@ -64,11 +65,11 @@ async def test_enqueue_job(arku_redis: ArkuRedis, worker, queue_name=default_que
             args=(1, 2),
             kwargs={'c': 3},
             job_try=1,
-            enqueue_time=CloseToNow(),
+            enqueue_time=dirty_equals.IsNow(tz=datetime.timezone.utc),
             success=True,
             result=42,
-            start_time=CloseToNow(),
-            finish_time=CloseToNow(),
+            start_time=dirty_equals.IsNow(tz=datetime.timezone.utc),
+            finish_time=dirty_equals.IsNow(tz=datetime.timezone.utc),
             score=None,
             queue_name=expected_queue_name,
             job_id=j.job_id,

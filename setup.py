@@ -72,12 +72,12 @@ setuptools.setup(
         ],
         'test': [
             'coverage==7.3.1',
+            'dirty-equals==0.6.0',
             'pytest-aiohttp==0.3.0',
             'pytest-cov==2.8.1',
             'pytest-mock==3',
             'pytest-sugar==0.9.2',
             'pytest-timeout==1.3.3',
-            'pytest-toolbox==0.4',
             'pytest==5.3.5',
         ],
     },

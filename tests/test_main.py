@@ -7,9 +7,9 @@ from datetime import datetime, timezone
 from random import shuffle
 from time import time
 
+import dirty_equals
 import msgpack
 import pytest
-from pytest_toolbox.comparison import AnyInt, CloseToNow
 
 from arku.connections import ArkuRedis
 from arku.constants import default_queue_name
@@ -130,7 +130,7 @@ async def test_job_info(arku_redis: ArkuRedis):
     t_before = time()
     j = await arku_redis.enqueue_job('foobar', 123, a=456)
     info = await j.info()
-    assert info.enqueue_time == CloseToNow()
+    assert info.enqueue_time == dirty_equals.IsNow(tz=timezone.utc)
     assert info.job_try is None
     assert info.function == 'foobar'
     assert info.args == (123,)
@@ -256,24 +256,24 @@ async def test_get_jobs(arku_redis: ArkuRedis):
             'args': (),
             'kwargs': {'a': 1, 'b': 2, 'c': 3},
             'job_try': None,
-            'enqueue_time': CloseToNow(),
-            'score': AnyInt(),
+            'enqueue_time': dirty_equals.IsNow(tz=timezone.utc),
+            'score': dirty_equals.IsInt,
         },
         {
             'function': 'second',
             'args': (4,),
             'kwargs': {'b': 5, 'c': 6},
             'job_try': None,
-            'enqueue_time': CloseToNow(),
-            'score': AnyInt(),
+            'enqueue_time': dirty_equals.IsNow(tz=timezone.utc),
+            'score': dirty_equals.IsInt,
         },
         {
             'function': 'third',
             'args': (7,),
             'kwargs': {'b': 8},
             'job_try': None,
-            'enqueue_time': CloseToNow(),
-            'score': AnyInt(),
+            'enqueue_time': dirty_equals.IsNow(tz=timezone.utc),
+            'score': dirty_equals.IsInt,
         },
     ]
     assert jobs[0].score < jobs[1].score < jobs[2].score
