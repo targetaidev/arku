@@ -71,7 +71,7 @@ setuptools.setup(
             'sphinxcontrib-websupport==1.1.0',
         ],
         'test': [
-            'coverage==5.1',
+            'coverage==7.3.1',
             'pytest-aiohttp==0.3.0',
             'pytest-cov==2.8.1',
             'pytest-mock==3',
