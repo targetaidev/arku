@@ -5,8 +5,23 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Any, Dict, Generator, Optional, Type, Union
 
-from redis.asyncio.connection import SERVER_CLOSED_CONNECTION_ERROR, Connection, Encoder, HiredisParser, PythonParser
+from redis.asyncio.connection import Connection, Encoder
 from redis.typing import EncodableT, EncodedT
+
+try:
+    from redis.asyncio.connection import _AsyncHiredisParser as HiredisParser
+except (ImportError, ModuleNotFoundError):
+    from redis.asyncio.connection import HiredisParser
+
+try:
+    from redis.asyncio.connection import _AsyncRESP2Parser as PythonParser
+except (ImportError, ModuleNotFoundError):
+    from redis.asyncio.connection import PythonParser
+
+try:
+    from redis.asyncio.connection import SERVER_CLOSED_CONNECTION_ERROR
+except (ImportError, ModuleNotFoundError):
+    SERVER_CLOSED_CONNECTION_ERROR = 'Connection closed by server.'
 
 try:
     import hiredis  # noqa: F401
