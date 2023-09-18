@@ -64,7 +64,6 @@ setuptools.setup(
             'msgpack==0.6.1',
             'pycodestyle==2.5.0',
             'pyflakes==2.1.1',
-            'twine==3.1.1',
             'watchgod>=0.4',
         ],
         'doc': [

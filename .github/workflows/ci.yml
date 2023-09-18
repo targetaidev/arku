@@ -55,8 +55,8 @@ jobs:
         file: ./coverage.xml
         env_vars: PYTHON,OS
 
-  distrib:
-    name: Build and upload the packages
+  release:
+    name: Build and publish the packages
     needs: [lint, test]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest

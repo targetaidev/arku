@@ -1,9 +1,9 @@
 .DEFAULT: help
-.PHONY: help bootstrap build lint test testcov outdated upload clean
+.PHONY: help bootstrap build lint test testcov outdated clean
 
-VENV = .venv
-PYTHON_BIN ?= python3
-PYTHON = $(VENV)/bin/$(PYTHON_BIN)
+VENV=.venv
+PYTHON_BIN?=python3
+PYTHON=$(VENV)/bin/$(PYTHON_BIN)
 
 help:
 	@echo "Please use \`$(MAKE) <target>' where <target> is one of the following:"
@@ -11,10 +11,9 @@ help:
 	@echo "  bootstrap   - setup packaging dependencies and initialize venv"
 	@echo "  build       - build project packages"
 	@echo "  lint        - inspect project source code for errors"
-	@echo "  outdated    - list outdated project requirements"
 	@echo "  test        - run project tests"
 	@echo "  testcov     - project test coverage reports"
-	@echo "  upload      - upload built packages to package repository"
+	@echo "  outdated    - list outdated project requirements"
 	@echo "  clean       - clean up project environment and all the build artifacts"
 
 bootstrap: $(VENV)/bin/activate
@@ -30,9 +29,6 @@ lint: bootstrap
 	$(PYTHON) -m flake8 arku tests
 	$(PYTHON) -m isort arku tests --check-only --df
 
-outdated: bootstrap
-	$(PYTHON) -m pip list --outdated --format=columns
-
 test: bootstrap
 	$(PYTHON) -m pytest --cov=arku
 
@@ -40,8 +36,8 @@ testcov: test
 	$(PYTHON) -m coverage html
 	$(PYTHON) -m coverage xml
 
-upload: build
-	$(PYTHON) -m twine upload dist/*
+outdated: bootstrap
+	$(PYTHON) -m pip list --outdated --format=columns
 
 clean:
 	rm -rf .cache
